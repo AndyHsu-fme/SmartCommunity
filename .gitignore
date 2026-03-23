@@ -1,0 +1,26 @@
+# ── .NET ─────────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+# ── Secrets（不進 git） ────────────────────────────────────────────────────────
+**/appsettings.Development.json
+appsettings.Production.json
+
+# ── SQLite ────────────────────────────────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+smart-community-web/node_modules/
+smart-community-web/dist/
+smart-community-web/.env.local
+smart-community-web/.env*.local
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
