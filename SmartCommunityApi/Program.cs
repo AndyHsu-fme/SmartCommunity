@@ -8,12 +8,16 @@ using SmartCommunityApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ─────────────────────────────────────────────────────────────────
-// 優先使用 DATABASE_URL 環境變數（Render/Railway 部署），fallback 到 appsettings
+// 優先使用 DATABASE_URL 環境變數（Render 部署），fallback 到 appsettings
 var connectionString =
     Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<SmartCommunityDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        // PgBouncer transaction mode 不支援 prepared statements，需停用
+        npgsqlOptions.EnableRetryOnFailure(3);
+    }));
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]!;
