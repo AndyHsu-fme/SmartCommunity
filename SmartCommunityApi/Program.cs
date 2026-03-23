@@ -14,10 +14,6 @@ var connectionString =
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "";
 
-// PgBouncer（Supabase pooler）相容性：停用 prepared statements
-if (!connectionString.Contains("Maximum Auto Prepare"))
-    connectionString += ";Maximum Auto Prepare=0;No Reset On Close=true";
-
 builder.Services.AddDbContext<SmartCommunityDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions =>
         npgsqlOptions.EnableRetryOnFailure(3)));
