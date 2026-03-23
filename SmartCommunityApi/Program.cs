@@ -74,6 +74,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+// 暫時 debug endpoint：確認連線字串是否有被讀到（不含密碼）
+app.MapGet("/api/debug/conncheck", () =>
+{
+    var cs = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "(not set)";
+    var safe = cs.Length > 10 ? cs[..cs.IndexOf(';')] + ";...（共 " + cs.Length + " 字元）" : "(empty)";
+    return Results.Ok(new { env = app.Environment.EnvironmentName, connectionPreview = safe });
+});
+
 app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthentication();
