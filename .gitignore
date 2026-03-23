@@ -9,6 +9,7 @@ obj/
 # ── Secrets（不進 git） ────────────────────────────────────────────────────────
 **/appsettings.Development.json
 appsettings.Production.json
+**/local.settings.json
 
 # ── SQLite ────────────────────────────────────────────────────────────────────
 *.db

@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="SmartCommunityApi/SmartCommunityApi.csproj" />
   <Project Path="SmartCommunityApi.Tests/SmartCommunityApi.Tests.csproj" />
+  <Project Path="SmartCommunityApi.Functions/SmartCommunityApi.Functions.csproj" />
 </Solution>
