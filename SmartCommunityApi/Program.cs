@@ -43,10 +43,18 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// ── CORS（開發環境允許前端 localhost）─────────────────────────────────────────
+// ── CORS（本機 + 環境變數 AllowedOrigins，逗號分隔）────────────────────────────
+var extraOrigins = (builder.Configuration["AllowedOrigins"] ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+var corsOrigins = new[]
+{
+    "http://localhost:5173", "https://localhost:5173",
+    "http://localhost:5174", "https://localhost:5174"
+}.Concat(extraOrigins).ToArray();
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:5174", "https://localhost:5174")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()));
 
