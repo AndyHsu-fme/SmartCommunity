@@ -8,16 +8,19 @@ using SmartCommunityApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ─────────────────────────────────────────────────────────────────
-// 優先使用 DATABASE_URL 環境變數（Render 部署），fallback 到 appsettings
+// 優先讀取 DATABASE_URL（Render），fallback 到 appsettings ConnectionStrings
 var connectionString =
     Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+    ?? builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "";
+
+// PgBouncer（Supabase pooler）相容性：停用 prepared statements
+if (!connectionString.Contains("Maximum Auto Prepare"))
+    connectionString += ";Maximum Auto Prepare=0;No Reset On Close=true";
+
 builder.Services.AddDbContext<SmartCommunityDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions =>
-    {
-        // PgBouncer transaction mode 不支援 prepared statements，需停用
-        npgsqlOptions.EnableRetryOnFailure(3);
-    }));
+        npgsqlOptions.EnableRetryOnFailure(3)));
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]!;
