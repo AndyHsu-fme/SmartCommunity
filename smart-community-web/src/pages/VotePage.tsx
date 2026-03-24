@@ -85,8 +85,7 @@ export default function VotePage() {
         setMessage({ id: topicId, text: (body as { message?: string }).message ?? "投票失敗", ok: false });
       }
     } catch {
-      setVoted((prev) => ({ ...prev, [topicId]: option }));
-      setMessage({ id: topicId, text: `✅ 已成功投票：${option}（模擬）`, ok: true });
+      setMessage({ id: topicId, text: "網路連線異常，投票未儲存，請重試", ok: false });
     } finally {
       setSubmitting(null);
     }

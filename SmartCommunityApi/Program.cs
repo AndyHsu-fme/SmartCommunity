@@ -15,8 +15,7 @@ var connectionString =
     ?? "";
 
 builder.Services.AddDbContext<SmartCommunityDbContext>(options =>
-    options.UseNpgsql(connectionString, npgsqlOptions =>
-        npgsqlOptions.EnableRetryOnFailure(3)));
+    options.UseNpgsql(connectionString));
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtKey = builder.Configuration["Jwt:Key"]!;

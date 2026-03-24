@@ -38,39 +38,38 @@ public class VoteService(SmartCommunityDbContext db, IConfiguration config) : IV
         if (topic is null) return CastVoteResult.TopicNotFound;
         if (topic.EndTime < DateTime.UtcNow) return CastVoteResult.TopicExpired;
 
-        await using var transaction = await db.Database.BeginTransactionAsync();
+        bool alreadyVoted = await db.VoteStatuses
+            .AnyAsync(vs => vs.TopicId == topicId && vs.UserId == userId);
+        if (alreadyVoted) return CastVoteResult.AlreadyVoted;
+
+        // 紀錄「誰投過票」（含 UserId）
+        db.VoteStatuses.Add(new VoteStatus
+        {
+            TopicId = topicId,
+            UserId  = userId,
+            VotedAt = DateTime.UtcNow,
+        });
+
         try
         {
-            bool alreadyVoted = await db.VoteStatuses
-                .AnyAsync(vs => vs.TopicId == topicId && vs.UserId == userId);
-
-            if (alreadyVoted) return CastVoteResult.AlreadyVoted;
-
-            // 紀錄「誰投過票」（含 UserId）
-            db.VoteStatuses.Add(new VoteStatus
-            {
-                TopicId = topicId,
-                UserId  = userId,
-                VotedAt = DateTime.UtcNow,
-            });
-
-            // 紀錄「投了什麼票」（不含 UserId，確保匿名性）
-            db.AnonymousBallots.Add(new AnonymousBallot
-            {
-                TopicId        = topicId,
-                OptionSelected = option,
-                HashToken      = GenerateHashToken(userId, topicId),
-            });
-
             await db.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return CastVoteResult.Success;
         }
-        catch
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
         {
-            await transaction.RollbackAsync();
-            throw;
+            // 唯一索引衝突（並發重複投票）
+            return CastVoteResult.AlreadyVoted;
         }
+
+        // 紀錄「投了什麼票」（不含 UserId，確保匿名性）
+        db.AnonymousBallots.Add(new AnonymousBallot
+        {
+            TopicId        = topicId,
+            OptionSelected = option,
+            HashToken      = GenerateHashToken(userId, topicId),
+        });
+        await db.SaveChangesAsync();
+
+        return CastVoteResult.Success;
     }
 
     public async Task<VoteTopicWithResultsDto> CreateTopicAsync(CreateVoteTopicRequest request)
