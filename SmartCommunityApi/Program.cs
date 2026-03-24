@@ -70,23 +70,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
-// 暫時 debug endpoint：確認連線字串是否有被讀到（不含密碼）
-app.MapGet("/api/debug/conncheck", () =>
-{
-    var cs = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "(not set)";
-    var safe = cs.Length > 10 ? cs[..cs.IndexOf(';')] + ";...（共 " + cs.Length + " 字元）" : "(empty)";
-    return Results.Ok(new { env = app.Environment.EnvironmentName, connectionPreview = safe });
-});
-
-// 暫時開啟詳細錯誤（診斷用，之後移除）
-app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
-{
-    var ex = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
-    ctx.Response.StatusCode = 500;
-    ctx.Response.ContentType = "application/json";
-    await ctx.Response.WriteAsJsonAsync(new { error = ex?.GetType().Name, message = ex?.Message, inner = ex?.InnerException?.Message });
-}));
-
 app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthentication();
